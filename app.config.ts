@@ -30,7 +30,7 @@ const env = {
 const config: ExpoConfig = {
   name: env.appName,
   slug: env.appSlug,
-  version: "2.0.1",
+  version: "2.0.2",
   platforms: ["ios", "android", "web"],
   orientation: "portrait",
   icon: "./assets/images/icon.png",
@@ -47,7 +47,7 @@ const config: ExpoConfig = {
     icon: "./assets/images/icon.png",
     supportsTablet: true,
     bundleIdentifier: env.iosBundleId,
-    buildNumber: "137",
+    buildNumber: "138",
     config: {
       googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
     },
@@ -70,7 +70,7 @@ const config: ExpoConfig = {
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     package: env.androidPackage,
-    versionCode: 137,
+    versionCode: 138,
     config: {
       googleMaps: {
         apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,

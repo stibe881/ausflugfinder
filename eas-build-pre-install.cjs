@@ -21,15 +21,7 @@ if (os.platform() === 'darwin') {
     console.log("🤖 Linux/Android detected. Skipping macOS-specific permission fixes.");
 }
 
-// Now, proceed with commands to clean and install.
-console.log("🧹 Cleaning node_modules...");
-try {
-    execSync("rm -rf node_modules", { stdio: "inherit" });
-} catch (e) {
-    // Ignore cleanup errors
-}
-
-console.log("📦 Installing dependencies...");
-execSync("npm install --legacy-peer-deps --unsafe-perm=true", { stdio: "inherit" });
-
-console.log("✅ Dependencies installed successfully.");
+// Dependencies are installed by EAS itself with pnpm (pnpm-lock.yaml, see .npmrc).
+// This hook must not run npm: it would create a package-lock.json, and EAS would
+// then switch to `npm ci`, which fails because that lock file is out of sync.
+console.log("✅ Pre-install hook done.");

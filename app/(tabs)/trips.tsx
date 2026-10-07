@@ -10,6 +10,7 @@ import {
   Dimensions,
   Alert,
   Animated,
+  Platform,
 } from "react-native";
 import * as Location from "expo-location";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -580,13 +581,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
+    paddingHorizontal: Platform.OS === "android" ? 6 : Spacing.md,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    gap: Spacing.xs,
+    gap: Platform.OS === "android" ? 4 : Spacing.xs,
   },
   filterTabText: {
-    fontSize: 14,
+    fontSize: Platform.OS === "android" ? 12 : 14,
     fontWeight: "500",
   },
   filterTabBadge: {

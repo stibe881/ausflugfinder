@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import * as Notifications from "expo-notifications";
 import "react-native-reanimated";
-import { Platform, View, Text } from "react-native";
+import { Platform, View, Text, BackHandler } from "react-native";
 import { useFonts } from "expo-font";
 import {
   SafeAreaFrameContext,
@@ -50,6 +50,15 @@ export default function RootLayout() {
   // Initialize Manus runtime for cookie injection from parent container
   useEffect(() => {
     initManusRuntime();
+  }, []);
+
+  // Android: keep the app open when back is pressed on a main tab.
+  // React Navigation's own back handler runs first, so navigation inside the
+  // app still works; this only catches the press when nothing else handled it.
+  useEffect(() => {
+    if (Platform.OS !== "android") return;
+    const subscription = BackHandler.addEventListener("hardwareBackPress", () => true);
+    return () => subscription.remove();
   }, []);
 
   const handleSafeAreaUpdate = useCallback((metrics: Metrics) => {

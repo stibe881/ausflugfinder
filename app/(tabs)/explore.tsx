@@ -496,9 +496,28 @@ export default function ExploreScreen() {
   };
 
   const handleFavoriteToggle = async (tripId: number) => {
-    await addUserTrip(tripId, true);
-    // Reload user trips to update UI
-    await loadUserTrips();
+    // Optimistic update
+    const isFavorite = favoriteTripIds.has(tripId);
+    const newFavoriteIds = new Set(favoriteTripIds);
+    if (isFavorite) {
+      newFavoriteIds.delete(tripId);
+    } else {
+      newFavoriteIds.add(tripId);
+    }
+    setFavoriteTripIds(newFavoriteIds);
+
+    if (!isFavorite) {
+      // Adding to favorites: make sure the user_trips entry exists first
+      await addUserTrip(tripId, true);
+    } else {
+      // Removing from favorites: toggle the existing entry
+      const result = await toggleTripFavorite(tripId);
+      if (!result.success) {
+        // Revert on failure
+        setFavoriteTripIds(favoriteTripIds);
+      }
+    }
+    // No reload: the optimistic update is enough and avoids icon flicker.
   };
 
   const handleAddToTrips = async (tripId: number) => {
@@ -989,6 +1008,8 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
+    // On Android the shadow alone is not visible enough over photos
+    ...Platform.select({ android: { backgroundColor: "rgba(0, 0, 0, 0.5)" }, default: {} }),
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",

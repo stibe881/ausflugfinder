@@ -1,5 +1,5 @@
 import { View, StyleSheet, Pressable } from "react-native";
-import { ThemedText } from "@/components themed-text";
+import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Colors, Spacing, BorderRadius } from "@/constants/theme";

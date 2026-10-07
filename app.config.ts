@@ -23,7 +23,8 @@ const env = {
   logoUrl: '',
   scheme: schemeFromBundleId,
   iosBundleId: bundleId,
-  androidPackage: bundleId,
+  // Android uses its own ID, the one registered in Google Play
+  androidPackage: "com.ausflugfinder.app",
 };
 
 const config: ExpoConfig = {

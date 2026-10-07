@@ -54,7 +54,8 @@ Ein Klick startet den GitHub-Workflow `Release` (`.github/workflows/release.yml`
 
 - **Web:** baut die statische Webseite (`npx expo export`), legt sie als Download `web-dist` am Lauf ab und kopiert sie
   per SSH auf das Webhosting, wenn die Secrets `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY` und `DEPLOY_PATH` gesetzt sind.
-  `DEPLOY_PATH` ist der Ordner der Domain, zum Beispiel `public_html/ausflugfinder.ch`. Die Datei `public/.htaccess`
+  `DEPLOY_PATH` ist der Ordner der Domain, zum Beispiel `public_html/ausflugfinder.ch`.
+  Der SSH-Port ist 222, wie bei Hetzner üblich. Ein anderer Port lässt sich mit dem Secret `DEPLOY_PORT` setzen. Die Datei `public/.htaccess`
   gehört zur Webseite und sorgt dafür, dass dynamische Seiten wie `/trip/123` funktionieren.
 - **iOS und Android:** erhöht die Build-Nummer (`scripts/bump-build-number.mjs`, wird nach `main` committet),
   startet den Build bei Expo und sendet ihn auf Wunsch an TestFlight bzw. Google Play.

@@ -100,7 +100,10 @@ jobs:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
         run: |
+          # Hetzner Webhosting: Port 22 ist nur SFTP, die Shell läuft auf Port 222
+          DEPLOY_PORT="${DEPLOY_PORT:-222}"
           # Ohne genauen Zielordner nichts hochladen. Auf einem Webspace mit mehreren Seiten
           # würde der Hauptordner die Startseiten der anderen Seiten überschreiben.
           case "$DEPLOY_PATH" in
@@ -112,8 +115,8 @@ jobs:
           install -m 700 -d ~/.ssh
           printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
-          tar -C dist -czf - . | ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" \
+          ssh-keyscan -p "$DEPLOY_PORT" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+          tar -C dist -czf - . | ssh -p "$DEPLOY_PORT" -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" \
             "mkdir -p '$DEPLOY_PATH' && tar -xzf - -C '$DEPLOY_PATH'"
 
   ios:

@@ -57,6 +57,7 @@ export default function ReleasesScreen() {
   const { isAdmin } = useAdmin();
 
   const [submit, setSubmit] = useState(true);
+  const [newVersion, setNewVersion] = useState(true);
   const [runs, setRuns] = useState<ReleaseRun[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -101,9 +102,11 @@ export default function ReleasesScreen() {
   const onStart = async (target: ReleaseTarget) => {
     if (starting) return;
     const toStores = submit && target !== "web";
+    const bumpsVersion = newVersion && target !== "web";
     const ok = await confirmAsync(
       "Update veröffentlichen?",
       `Jetzt ${TARGET_LABEL[target]} aktualisieren.` +
+        (bumpsVersion ? "\n\nDie Versionsnummer der Apps wird um eins erhöht." : "") +
         (toStores ? "\n\nDie App-Builds werden danach automatisch an TestFlight bzw. Google Play gesendet." : "") +
         "\n\nDas lässt sich nicht zurücknehmen.",
       { confirmText: "Starten" },
@@ -111,7 +114,7 @@ export default function ReleasesScreen() {
     if (!ok) return;
 
     setStarting(target);
-    const result = await startRelease(target, submit);
+    const result = await startRelease(target, submit, newVersion);
     setStarting(null);
 
     if (result.success) {
@@ -155,6 +158,21 @@ export default function ReleasesScreen() {
               <Switch
                 value={submit}
                 onValueChange={setSubmit}
+                trackColor={{ false: colors.border, true: colors.primary }}
+              />
+            </View>
+
+            <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={styles.switchText}>
+                <ThemedText style={styles.cardTitle}>Neue Versionsnummer</ThemedText>
+                <ThemedText style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                  Zählt die Version der Apps hoch, zum Beispiel 2.0.1 auf 2.0.2. Apple lehnt sonst Builds ab, wenn die
+                  aktuelle Version schon freigegeben ist.
+                </ThemedText>
+              </View>
+              <Switch
+                value={newVersion}
+                onValueChange={setNewVersion}
                 trackColor={{ false: colors.border, true: colors.primary }}
               />
             </View>

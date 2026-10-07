@@ -7,9 +7,10 @@
  *   node scripts/bump-build-number.mjs                 # +1
  *   node scripts/bump-build-number.mjs --set 150       # exact number
  *   node scripts/bump-build-number.mjs --version 2.1.0 # also change the marketing version
+ *   node scripts/bump-build-number.mjs --bump patch    # marketing version +1 (2.0.1 -> 2.0.2), also minor/major
  *   node scripts/bump-build-number.mjs --dry-run       # show only
  *
- * Prints the new number as the last line: build_number=<n>
+ * Prints version=<x.y.z> and, as the last line, build_number=<n>
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -24,9 +25,18 @@ const value = (name) => {
 };
 
 const dryRun = flag("--dry-run");
-const newVersion = value("--version");
+let newVersion = value("--version");
+const bumpKind = value("--bump");
 if (newVersion && !/^\d+\.\d+\.\d+$/.test(newVersion)) {
   console.error(`Ungültige Version: ${newVersion} (erwartet z. B. 2.1.0)`);
+  process.exit(1);
+}
+if (bumpKind && !["patch", "minor", "major"].includes(bumpKind)) {
+  console.error(`Ungültiger Wert für --bump: ${bumpKind} (patch, minor oder major)`);
+  process.exit(1);
+}
+if (bumpKind && newVersion) {
+  console.error("--bump und --version lassen sich nicht kombinieren");
   process.exit(1);
 }
 
@@ -36,6 +46,17 @@ const current = Number(configSrc.match(/buildNumber:\s*"(\d+)"/)?.[1]);
 if (!Number.isInteger(current)) {
   console.error("buildNumber in app.config.ts nicht gefunden");
   process.exit(1);
+}
+
+const currentVersion = configSrc.match(/\n\s{2}version:\s*"(\d+)\.(\d+)\.(\d+)"/)?.slice(1).map(Number);
+if (bumpKind) {
+  if (!currentVersion) {
+    console.error("version in app.config.ts nicht gefunden");
+    process.exit(1);
+  }
+  const [major, minor, patch] = currentVersion;
+  newVersion =
+    bumpKind === "major" ? `${major + 1}.0.0` : bumpKind === "minor" ? `${major}.${minor + 1}.0` : `${major}.${minor}.${patch + 1}`;
 }
 
 const setArg = value("--set");
@@ -77,4 +98,5 @@ for (const [file, src] of contents) {
   console.log(`${dryRun ? "würde ändern" : "geändert"}: ${file}`);
   if (!dryRun) fs.writeFileSync(path.join(root, file), src);
 }
+console.log(`version=${newVersion ?? currentVersion?.join(".")}`);
 console.log(`build_number=${next}`);

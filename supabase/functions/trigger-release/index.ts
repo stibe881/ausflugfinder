@@ -105,6 +105,7 @@ serve(async (req) => {
                 return json(400, { success: false, error: `Ungültiges Ziel: ${target}` });
             }
             const submit = body.submit === false ? "false" : "true";
+            const newVersion = body.newVersion === false ? "false" : "true";
 
             // Only one release at a time
             const runs = await loadRuns();
@@ -114,7 +115,7 @@ serve(async (req) => {
 
             const res = await gh(`actions/workflows/${WORKFLOW}/dispatches`, {
                 method: "POST",
-                body: JSON.stringify({ ref, inputs: { target, submit } }),
+                body: JSON.stringify({ ref, inputs: { target, submit, new_version: newVersion } }),
             });
             if (res.status !== 204) {
                 const text = await res.text();
@@ -122,7 +123,7 @@ serve(async (req) => {
                 return json(502, { success: false, error: `GitHub hat den Start abgelehnt (${res.status}). ${text}` });
             }
 
-            console.log(`[trigger-release] ${user.email} started target=${target} submit=${submit}`);
+            console.log(`[trigger-release] ${user.email} started target=${target} submit=${submit} newVersion=${newVersion}`);
             return json(200, { success: true });
         }
 

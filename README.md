@@ -57,8 +57,9 @@ Ein Klick startet den GitHub-Workflow `Release` (`.github/workflows/release.yml`
   `DEPLOY_PATH` ist der Ordner der Domain, zum Beispiel `public_html/ausflugfinder.ch`.
   Der SSH-Port ist 222, wie bei Hetzner üblich. Ein anderer Port lässt sich mit dem Secret `DEPLOY_PORT` setzen. Die Datei `public/.htaccess`
   gehört zur Webseite und sorgt dafür, dass dynamische Seiten wie `/trip/123` funktionieren.
-- **iOS und Android:** erhöht die Build-Nummer (`scripts/bump-build-number.mjs`, wird nach `main` committet),
-  startet den Build bei Expo und sendet ihn auf Wunsch an TestFlight bzw. Google Play.
+- **iOS und Android:** erhöht die Build-Nummer und auf Wunsch die Versionsnummer (`scripts/bump-build-number.mjs`,
+  wird nach `main` committet), startet den Build bei Expo und sendet ihn auf Wunsch an TestFlight bzw. Google Play.
+  Die Versionsnummer muss steigen, sobald die aktuelle im App Store freigegeben ist, sonst lehnt Apple den Build ab.
 
 Der Knopf spricht nie direkt mit GitHub. Die App ruft die Funktion `trigger-release` auf. Sie prüft auf dem Server,
 dass der Nutzer Admin ist (`users.is_admin`), und verwendet den GitHub-Schlüssel, der nur in Supabase liegt.

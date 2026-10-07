@@ -14,6 +14,10 @@ on:
         description: "App-Builds nach dem Build an TestFlight bzw. Google Play senden"
         type: boolean
         default: true
+      new_version:
+        description: "Versionsnummer der Apps um eins erhöhen (nötig, wenn die aktuelle schon im Store freigegeben ist)"
+        type: boolean
+        default: true
 
 # Nur ein Release gleichzeitig
 concurrency:
@@ -30,6 +34,7 @@ jobs:
     outputs:
       sha: ${{ steps.commit.outputs.sha }}
       build_number: ${{ steps.bump.outputs.build_number }}
+      version: ${{ steps.bump.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -42,7 +47,9 @@ jobs:
       - name: Build-Nummer erhöhen
         id: bump
         if: inputs.target != 'web'
-        run: node scripts/bump-build-number.mjs | tee bump.log && tail -n 1 bump.log >> "$GITHUB_OUTPUT"
+        run: |
+          node scripts/bump-build-number.mjs ${{ inputs.new_version && '--bump patch' || '' }} | tee bump.log
+          grep -E '^(version|build_number)=' bump.log >> "$GITHUB_OUTPUT"
 
       - name: Änderung committen
         id: commit
@@ -51,7 +58,7 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add -u
-            git commit -m "chore(release): Build ${{ steps.bump.outputs.build_number }}"
+            git commit -m "chore(release): Version ${{ steps.bump.outputs.version }} Build ${{ steps.bump.outputs.build_number }}"
             git push origin HEAD:main
           fi
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"

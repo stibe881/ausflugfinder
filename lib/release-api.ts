@@ -32,8 +32,8 @@ async function callTriggerRelease<T extends object>(body: object): Promise<Funct
 }
 
 /** Starts the release workflow. Only works for admins (checked on the server). */
-export function startRelease(target: ReleaseTarget, submit: boolean) {
-  return callTriggerRelease<{}>({ action: "dispatch", target, submit });
+export function startRelease(target: ReleaseTarget, submit: boolean, newVersion: boolean) {
+  return callTriggerRelease<{}>({ action: "dispatch", target, submit, newVersion });
 }
 
 /** Latest workflow runs, newest first. */

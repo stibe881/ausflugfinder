@@ -22,7 +22,6 @@ concurrency:
 
 permissions:
   contents: write
-  packages: write
 
 jobs:
   # Zählt die Build-Nummer einmal hoch, damit iOS und Android sie gemeinsam nutzen
@@ -68,39 +67,54 @@ jobs:
         with:
           ref: ${{ needs.prepare.outputs.sha }}
 
-      - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: pnpm/action-setup@v4
 
-      - name: Image bauen und veröffentlichen
-        uses: docker/build-push-action@v6
+      - uses: actions/setup-node@v4
         with:
-          context: .
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/ausflugfinder-web:latest
-            ghcr.io/${{ github.repository_owner }}/ausflugfinder-web:${{ needs.prepare.outputs.sha }}
-          build-args: |
-            EXPO_PUBLIC_SUPABASE_URL=${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
-            EXPO_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
-            EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY }}
-            EXPO_PUBLIC_OPENWEATHER_API_KEY=${{ secrets.EXPO_PUBLIC_OPENWEATHER_API_KEY }}
+          node-version: 20
+          cache: pnpm
 
-      # Nur wenn ein Server hinterlegt ist. Ohne diese Secrets bleibt das Image
-      # in der GitHub Container Registry und wird dort von Hand geholt.
-      - name: Auf dem Server aktualisieren
+      - run: pnpm install --frozen-lockfile
+
+      - name: Webseite bauen
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+          EXPO_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY }}
+          EXPO_PUBLIC_OPENWEATHER_API_KEY: ${{ secrets.EXPO_PUBLIC_OPENWEATHER_API_KEY }}
+        run: npx expo export --clear --platform web
+
+      # Zum Herunterladen und für den Fall, dass kein Server hinterlegt ist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: dist
+          include-hidden-files: true
+          retention-days: 14
+
+      # Nur wenn ein Webhosting hinterlegt ist (DEPLOY_HOST).
+      # Die Dateien werden über SSH entpackt, vorhandene Dateien werden überschrieben.
+      - name: Auf dem Webhosting aktualisieren
         if: ${{ env.DEPLOY_HOST != '' }}
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script: |
-            cd ${{ secrets.DEPLOY_PATH }}
-            docker compose pull
-            docker compose up -d
+        env:
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          # Ohne genauen Zielordner nichts hochladen. Auf einem Webspace mit mehreren Seiten
+          # würde der Hauptordner die Startseiten der anderen Seiten überschreiben.
+          case "$DEPLOY_PATH" in
+            ""|"."|"/"|"~"|"public_html"|"public_html/")
+              echo "DEPLOY_PATH muss der Ordner dieser Domain sein, zum Beispiel public_html/ausflugfinder.ch" >&2
+              exit 1
+              ;;
+          esac
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+          tar -C dist -czf - . | ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" \
+            "mkdir -p '$DEPLOY_PATH' && tar -xzf - -C '$DEPLOY_PATH'"
 
   ios:
     needs: prepare

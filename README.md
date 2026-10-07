@@ -52,9 +52,10 @@ Es werden nur die Konten übernommen, nicht die Inhalte, die diese Nutzer in der
 Admins finden unter **Profil > Admin-Modus > Updates veröffentlichen** vier Knöpfe: Web, iOS, Android und Alles.
 Ein Klick startet den GitHub-Workflow `Release` (`.github/workflows/release.yml`).
 
-- **Web:** baut ein Docker-Image und lädt es in die GitHub Container Registry (`ghcr.io/stibe881/ausflugfinder-web`).
-  Sind die Secrets `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY` und `DEPLOY_PATH` gesetzt, zieht der Server das Image
-  und startet neu (`docker compose pull && docker compose up -d`).
+- **Web:** baut die statische Webseite (`npx expo export`), legt sie als Download `web-dist` am Lauf ab und kopiert sie
+  per SSH auf das Webhosting, wenn die Secrets `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY` und `DEPLOY_PATH` gesetzt sind.
+  `DEPLOY_PATH` ist der Ordner der Domain, zum Beispiel `public_html/ausflugfinder.ch`. Die Datei `public/.htaccess`
+  gehört zur Webseite und sorgt dafür, dass dynamische Seiten wie `/trip/123` funktionieren.
 - **iOS und Android:** erhöht die Build-Nummer (`scripts/bump-build-number.mjs`, wird nach `main` committet),
   startet den Build bei Expo und sendet ihn auf Wunsch an TestFlight bzw. Google Play.
 
@@ -68,8 +69,8 @@ dass der Nutzer Admin ist (`users.is_admin`), und verwendet den GitHub-Schlüsse
    `supabase secrets set GITHUB_DISPATCH_TOKEN=...`
 2. **GitHub-Secrets** (Repository > Settings > Secrets and variables > Actions):
    `EXPO_TOKEN` (expo.dev > Access tokens), `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`,
-   `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`, `EXPO_PUBLIC_OPENWEATHER_API_KEY`. Für den Server-Teil zusätzlich die
-   vier `DEPLOY_*`-Secrets.
+   `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`, `EXPO_PUBLIC_OPENWEATHER_API_KEY`. Für das Webhosting zusätzlich die
+   vier `DEPLOY_*`-Secrets (Host, Benutzer, privater SSH-Schlüssel, Zielordner der Domain).
 3. **Expo-Umgebungsvariablen:** Die App-Builds laufen bei Expo und lesen die Werte von dort. Einmal pro Wert:
    `eas env:create --environment production --name EXPO_PUBLIC_SUPABASE_URL --value ... --visibility plaintext`
    (ebenso für `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`, `EXPO_PUBLIC_OPENWEATHER_API_KEY`).
@@ -84,8 +85,9 @@ dass der Nutzer Admin ist (`users.is_admin`), und verwendet den GitHub-Schlüsse
 - **iOS und Android:** `eas build --platform ios|android --profile production`, danach `eas submit`.
   Vorher `node scripts/bump-build-number.mjs`. Version und Build-Nummer stehen in `app.config.ts`, in
   `ios/AusflugFinder/Info.plist`, im Xcode-Projekt und in `android/app/build.gradle`. Das Skript ändert alle Stellen gemeinsam.
-- **Web:** `docker build` mit den Build-Argumenten aus dem `Dockerfile`. Die nginx-Konfiguration ist nötig, weil dynamische
-  Seiten wie `/trip/123` auf ihre Vorlage (`/trip/[id].html`) umgeleitet werden müssen.
+- **Web:** `npx expo export --clear --platform web` erzeugt den Ordner `dist`. Dessen gesamter Inhalt, auch die versteckte
+  Datei `.htaccess`, gehört in den Ordner der Domain auf dem Webhosting.
+  Für einen eigenen Server mit Docker gibt es alternativ `Dockerfile` und `nginx.conf`.
 
 ## Plattformspezifischer Code
 

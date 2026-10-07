@@ -1,0 +1,29 @@
+# Apache-Regeln für die statische Web-Version (Hetzner Webhosting).
+# Expo erzeugt pro Seite eine eigene HTML-Datei. Dynamische Seiten wie /trip/123
+# müssen auf ihre Vorlage (/trip/[id].html) umgeleitet werden.
+Options -MultiViews -Indexes
+RewriteEngine On
+
+# Vorhandene Dateien und Ordner unverändert ausliefern
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# /explore liefert explore.html
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.+)$ $1.html [L]
+
+# Dynamische Seiten (die erste passende Regel gewinnt)
+RewriteRule ^trip/edit/[^/]+$ trip/edit/[id].html [L]
+RewriteRule ^trip/[^/]+$ trip/[id].html [L]
+RewriteRule ^plan/[^/]+$ plan/[id].html [L]
+RewriteRule ^planning/[^/]+$ planning/[id].html [L]
+
+ErrorDocument 404 /+not-found.html
+
+# Gebaute Dateien tragen einen Hash im Namen und ändern sich nie
+<IfModule mod_headers.c>
+  <FilesMatch "^_expo/static/">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>

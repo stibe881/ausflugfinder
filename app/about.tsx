@@ -1,4 +1,4 @@
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { Linking, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
@@ -33,6 +33,7 @@ function InfoItem({ icon, title, value, onPress }: { icon: string; title: string
 }
 
 export default function AboutScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
@@ -93,8 +94,9 @@ export default function AboutScreen() {
             <ThemedText style={styles.sectionTitle}>Information</ThemedText>
             <InfoItem icon="globe" title="Website" value="ausflugfinder.ch" onPress={() => Linking.openURL("https://ausflugfinder.ch")} />
             <InfoItem icon="paperplane.fill" title="E-Mail" value="info@ausflugfinder.ch" onPress={() => Linking.openURL("mailto:info@ausflugfinder.ch")} />
-            <InfoItem icon="doc.text.fill" title="Datenschutz" value="Datenschutzerklärung" onPress={() => { }} />
-            <InfoItem icon="doc.text.fill" title="Nutzungsbedingungen" value="AGB" onPress={() => { }} />
+            <InfoItem icon="doc.text.fill" title="Impressum" value="Impressum" onPress={() => router.push("/legal/impressum" as any)} />
+            <InfoItem icon="doc.text.fill" title="Datenschutz" value="Datenschutzerklärung" onPress={() => router.push("/legal/privacy" as any)} />
+            <InfoItem icon="doc.text.fill" title="Nutzungsbedingungen" value="AGB" onPress={() => router.push("/legal/terms" as any)} />
           </View>
 
           {/* Credits */}

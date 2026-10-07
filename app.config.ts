@@ -29,7 +29,7 @@ const env = {
 const config: ExpoConfig = {
   name: env.appName,
   slug: env.appSlug,
-  version: "1.1.5",
+  version: "2.0.1",
   platforms: ["ios", "android", "web"],
   orientation: "portrait",
   icon: "./assets/images/icon.png",
@@ -46,6 +46,7 @@ const config: ExpoConfig = {
     icon: "./assets/images/icon.png",
     supportsTablet: true,
     bundleIdentifier: env.iosBundleId,
+    buildNumber: "130",
     config: {
       googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "AIzaSyAdDy_5jIriXd0kBJ4bzSNO8pKcegr9Z3E",
     },

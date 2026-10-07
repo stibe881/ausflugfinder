@@ -1,0 +1,10 @@
+node_modules
+dist
+.expo
+.git
+ios
+android
+temp_images
+*.log
+.env
+.env.local

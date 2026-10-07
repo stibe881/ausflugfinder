@@ -580,7 +580,7 @@ export default function ProfileScreen() {
               <SettingItem
                 icon="hand.raised.fill"
                 title={t.profilePrivacy}
-                onPress={() => router.push("/settings/privacy" as any)}
+                onPress={() => router.push("/legal/privacy" as any)}
               />
               <SettingItem
                 icon="envelope.fill"

@@ -65,3 +65,10 @@ pc-api-key.json
 
 # Auto Claude data directory
 .auto-claude/
+
+# Secrets and build output
+.env
+.env.local
+dist-check/
+*.log
+*.ips

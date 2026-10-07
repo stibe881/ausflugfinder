@@ -217,17 +217,30 @@ export default function HomeScreen() {
           },
         ]}
       >
-        {/* App Title */}
-        <ThemedText style={styles.heroTitle}>AusflugFinder</ThemedText>
+        {/* Background photo with a dark layer so the text stays readable */}
+        <Image
+          source={require("@/assets/images/hero.jpg")}
+          style={StyleSheet.absoluteFill}
+          contentFit="cover"
+          contentPosition="right"
+          accessibilityLabel="Familie wandert über dem See in den Bergen"
+        />
+        <View style={[StyleSheet.absoluteFill, styles.heroOverlay]} />
 
-        {/* Animated Icons */}
-        <View style={styles.iconRow}>
-          <AnimatedIcon name="mountain.2.fill" color={BrandColors.primary} delay={0} />
-          <AnimatedIcon name="sun.max.fill" color={BrandColors.secondary} delay={500} />
-          <AnimatedIcon name="mappin.and.ellipse" color={BrandColors.accent} delay={1000} />
+        <View>
+          {/* App Title */}
+          <ThemedText style={[styles.heroTitle, styles.heroTitleOnImage]}>AusflugFinder</ThemedText>
+
+          {/* Animated Icons */}
+          <View style={styles.iconRow}>
+            <AnimatedIcon name="mountain.2.fill" color={BrandColors.primary} delay={0} />
+            <AnimatedIcon name="sun.max.fill" color={BrandColors.secondary} delay={500} />
+            <AnimatedIcon name="mappin.and.ellipse" color={BrandColors.accent} delay={1000} />
+          </View>
         </View>
 
-        <ThemedText style={[styles.heroSubtitle, { color: colors.textSecondary }]}>
+        <View>
+        <ThemedText style={[styles.heroSubtitle, styles.heroSubtitleOnImage]}>
           {t.discoverSwitzerlandSub}
         </ThemedText>
 
@@ -252,13 +265,13 @@ export default function HomeScreen() {
                 style={({ pressed }) => [
                   styles.secondaryButton,
                   {
-                    borderColor: colors.secondary,
+                    borderColor: "#FFFFFF",
                     opacity: pressed ? 0.9 : 1,
                   },
                 ]}
               >
-                <IconSymbol name="person.fill" size={20} color={colors.secondary} />
-                <ThemedText style={[styles.secondaryButtonText, { color: colors.secondary }]}>
+                <IconSymbol name="person.fill" size={20} color="#FFFFFF" />
+                <ThemedText style={[styles.secondaryButtonText, { color: "#FFFFFF" }]}>
                   {t.profile}
                 </ThemedText>
               </Pressable>
@@ -275,6 +288,7 @@ export default function HomeScreen() {
               <ThemedText style={styles.primaryButtonText}>{t.loginButton}</ThemedText>
             </Pressable>
           )}
+        </View>
         </View>
       </View>
 
@@ -426,6 +440,24 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xxl,
     borderBottomLeftRadius: BorderRadius.xl,
     borderBottomRightRadius: BorderRadius.xl,
+    overflow: "hidden",
+    minHeight: 520,
+    justifyContent: "space-between",
+  },
+  heroOverlay: {
+    backgroundColor: "rgba(0, 0, 0, 0.32)",
+  },
+  heroTitleOnImage: {
+    color: "#FFFFFF",
+    textShadowColor: "rgba(0, 0, 0, 0.45)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
+  },
+  heroSubtitleOnImage: {
+    color: "#FFFFFF",
+    textShadowColor: "rgba(0, 0, 0, 0.55)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
   },
   iconRow: {
     flexDirection: "row",

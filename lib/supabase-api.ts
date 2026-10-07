@@ -1833,7 +1833,8 @@ export async function sendBroadcastNotification(
 // ========== WEATHER ==========
 
 // OpenWeatherMap API key
-const OPENWEATHER_API_KEY = 'REMOVED_OPENWEATHER_KEY';
+// Set EXPO_PUBLIC_OPENWEATHER_API_KEY in .env.local (and in the EAS / GitHub secrets).
+const OPENWEATHER_API_KEY = process.env.EXPO_PUBLIC_OPENWEATHER_API_KEY ?? '';
 
 export type CurrentWeather = {
     temp: number;

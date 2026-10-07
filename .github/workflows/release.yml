@@ -1,0 +1,138 @@
+# Release per Knopfdruck. Wird aus der App ausgelöst (Admin > Updates veröffentlichen)
+# oder von Hand unter Actions > Release > Run workflow.
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Was soll aktualisiert werden?"
+        type: choice
+        default: all
+        options: [web, ios, android, mobile, all]
+      submit:
+        description: "App-Builds nach dem Build an TestFlight bzw. Google Play senden"
+        type: boolean
+        default: true
+
+# Nur ein Release gleichzeitig
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  # Zählt die Build-Nummer einmal hoch, damit iOS und Android sie gemeinsam nutzen
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.commit.outputs.sha }}
+      build_number: ${{ steps.bump.outputs.build_number }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build-Nummer erhöhen
+        id: bump
+        if: inputs.target != 'web'
+        run: node scripts/bump-build-number.mjs | tee bump.log && tail -n 1 bump.log >> "$GITHUB_OUTPUT"
+
+      - name: Änderung committen
+        id: commit
+        run: |
+          if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -u
+            git commit -m "chore(release): Build ${{ steps.bump.outputs.build_number }}"
+            git push origin HEAD:main
+          fi
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  web:
+    needs: prepare
+    if: contains(fromJSON('["web","all"]'), inputs.target)
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image bauen und veröffentlichen
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/ausflugfinder-web:latest
+            ghcr.io/${{ github.repository_owner }}/ausflugfinder-web:${{ needs.prepare.outputs.sha }}
+          build-args: |
+            EXPO_PUBLIC_SUPABASE_URL=${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+            EXPO_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+            EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY }}
+            EXPO_PUBLIC_OPENWEATHER_API_KEY=${{ secrets.EXPO_PUBLIC_OPENWEATHER_API_KEY }}
+
+      # Nur wenn ein Server hinterlegt ist. Ohne diese Secrets bleibt das Image
+      # in der GitHub Container Registry und wird dort von Hand geholt.
+      - name: Auf dem Server aktualisieren
+        if: ${{ env.DEPLOY_HOST != '' }}
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd ${{ secrets.DEPLOY_PATH }}
+            docker compose pull
+            docker compose up -d
+
+  ios:
+    needs: prepare
+    if: contains(fromJSON('["ios","mobile","all"]'), inputs.target)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      # Der Build läuft bei Expo. Der Workflow stellt ihn nur in die Warteschlange.
+      - name: iOS-Build starten
+        run: eas build --platform ios --profile production --non-interactive --no-wait ${{ inputs.submit && '--auto-submit' || '' }}
+
+  android:
+    needs: prepare
+    if: contains(fromJSON('["android","mobile","all"]'), inputs.target)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Android-Build starten
+        run: eas build --platform android --profile production --non-interactive --no-wait ${{ inputs.submit && '--auto-submit' || '' }}

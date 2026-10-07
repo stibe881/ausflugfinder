@@ -17,7 +17,6 @@ import {
 import type { EdgeInsets, Metrics, Rect } from "react-native-safe-area-context";
 
 import { ThemeProvider as AppThemeProvider, useAppColorScheme } from "@/contexts/theme-context";
-import { trpc, createTRPCClient } from "@/lib/trpc";
 import { initManusRuntime, subscribeSafeAreaInsets } from "@/lib/manus-runtime";
 import { LanguageProvider } from "@/contexts/language-context";
 import { SupabaseAuthProvider } from "@/contexts/supabase-auth-context";
@@ -86,7 +85,6 @@ export default function RootLayout() {
         },
       }),
   );
-  const [trpcClient] = useState(() => createTRPCClient());
 
   const providerInitialMetrics = useMemo(
     () => initialWindowMetrics ?? { insets: initialInsets, frame: initialFrame },
@@ -95,7 +93,6 @@ export default function RootLayout() {
 
   const content = (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
           <ErrorBoundary>
             <SupabaseAuthProvider>
@@ -118,6 +115,7 @@ export default function RootLayout() {
                         <Stack.Screen name="settings/location" options={{ headerShown: true, title: "Standort" }} />
                         <Stack.Screen name="broadcast" options={{ headerShown: true, title: "Push-Benachrichtigung", headerBackTitle: "Zurück" }} />
                         <Stack.Screen name="admin/create-trip" options={{ headerShown: true, title: "Neuer Ausflug" }} />
+                        <Stack.Screen name="admin/releases" options={{ headerShown: true, title: "Updates veröffentlichen" }} />
                         <Stack.Screen name="create-trip-wizard" options={{ headerShown: false }} />
                         <Stack.Screen name="auth/login" options={{ headerShown: false }} />
                         <Stack.Screen name="auth/register" options={{ headerShown: false }} />
@@ -133,7 +131,6 @@ export default function RootLayout() {
             </SupabaseAuthProvider>
           </ErrorBoundary>
         </QueryClientProvider>
-      </trpc.Provider>
     </GestureHandlerRootView>
   );
 

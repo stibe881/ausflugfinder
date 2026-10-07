@@ -1,6 +1,7 @@
 # AusflugFinder
 
-Eine Codebasis für iOS, Android und Web (Expo / React Native, Expo Router, Supabase).
+Eine Codebasis für iOS, Android und Web (Expo / React Native, Expo Router).
+Als Datenbank, Anmeldung und Dateispeicher dient ausschliesslich Supabase. Einen eigenen Server gibt es nicht.
 
 ## Einrichten
 
@@ -9,42 +10,90 @@ pnpm install
 cp .env.example .env.local   # Werte eintragen, die Datei wird nicht eingecheckt
 ```
 
-`.env.local` braucht `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY` und
-`EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`. Die Werte werden beim Build fest in die App eingebaut.
-Nach einer Änderung an diesen Werten immer mit `--clear` neu bauen, sonst bleiben alte Werte im Metro-Cache.
+Die Werte in `.env.local` werden beim Build fest in die App eingebaut. Nach einer Änderung immer mit
+`--clear` neu bauen, sonst bleiben alte Werte im Metro-Cache.
 
 ## Entwickeln
 
 | Ziel | Befehl |
 | --- | --- |
-| Web im Browser | `npx expo start --web` |
+| Web im Browser | `pnpm web` |
 | iOS lokal | `pnpm ios` |
 | Android lokal | `pnpm android` |
 | Typprüfung | `pnpm check` |
 
-## Releases
+## Supabase
+
+Alle Daten liegen in einem Supabase-Projekt (Region London). Die Serverfunktionen unter
+`supabase/functions` werden getrennt deployt:
+
+```bash
+supabase functions deploy delete-account trigger-release link-voucher unlink-voucher notify-new-trip send-friend-invitation-email
+```
+
+- `delete-account` löscht das Konto des angemeldeten Nutzers (Profil, Login, Inhalte).
+- `trigger-release` startet die Updates aus dem Admin-Bereich, siehe unten.
+- Alle Tabellen mit Nutzerdaten sollten auf `users(id)` bzw. `auth.users(id)` mit `ON DELETE CASCADE` verweisen,
+  sonst bleiben beim Löschen eines Kontos Reste zurück. `delete-account` meldet solche Fälle im Log.
+
+### Konten der alten Web-App übernehmen
+
+Einmalig, damit sich frühere Web-Nutzer mit ihrem bisherigen Passwort anmelden können:
+
+```bash
+OLD_DATABASE_URL=... EXPO_PUBLIC_SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... pnpm import:web-users          # Probelauf
+OLD_DATABASE_URL=... EXPO_PUBLIC_SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... pnpm import:web-users --apply  # ausführen
+```
+
+Es werden nur die Konten übernommen, nicht die Inhalte, die diese Nutzer in der alten Web-App angelegt haben.
+
+## Updates per Knopfdruck
+
+Admins finden unter **Profil > Admin-Modus > Updates veröffentlichen** vier Knöpfe: Web, iOS, Android und Alles.
+Ein Klick startet den GitHub-Workflow `Release` (`.github/workflows/release.yml`).
+
+- **Web:** baut ein Docker-Image und lädt es in die GitHub Container Registry (`ghcr.io/stibe881/ausflugfinder-web`).
+  Sind die Secrets `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY` und `DEPLOY_PATH` gesetzt, zieht der Server das Image
+  und startet neu (`docker compose pull && docker compose up -d`).
+- **iOS und Android:** erhöht die Build-Nummer (`scripts/bump-build-number.mjs`, wird nach `main` committet),
+  startet den Build bei Expo und sendet ihn auf Wunsch an TestFlight bzw. Google Play.
+
+Der Knopf spricht nie direkt mit GitHub. Die App ruft die Funktion `trigger-release` auf. Sie prüft auf dem Server,
+dass der Nutzer Admin ist (`users.is_admin`), und verwendet den GitHub-Schlüssel, der nur in Supabase liegt.
+
+### Einmalige Einrichtung
+
+1. **GitHub-Schlüssel erstellen:** GitHub > Settings > Developer settings > Fine-grained tokens. Nur Repository
+   `ausflugfinder`, Berechtigung *Actions: Read and write*. Dann in Supabase hinterlegen:
+   `supabase secrets set GITHUB_DISPATCH_TOKEN=...`
+2. **GitHub-Secrets** (Repository > Settings > Secrets and variables > Actions):
+   `EXPO_TOKEN` (expo.dev > Access tokens), `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`,
+   `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`, `EXPO_PUBLIC_OPENWEATHER_API_KEY`. Für den Server-Teil zusätzlich die
+   vier `DEPLOY_*`-Secrets.
+3. **Expo-Umgebungsvariablen:** Die App-Builds laufen bei Expo und lesen die Werte von dort. Einmal pro Wert:
+   `eas env:create --environment production --name EXPO_PUBLIC_SUPABASE_URL --value ... --visibility plaintext`
+   (ebenso für `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`, `EXPO_PUBLIC_OPENWEATHER_API_KEY`).
+4. **Google Play:** Für das automatische Senden braucht Expo einen Service-Account-Schlüssel
+   (`eas credentials`, Android, Google Service Account). Ohne ihn den Schalter *An die Stores senden* ausschalten.
+5. **Branch-Schutz:** Der Workflow committet die neue Build-Nummer direkt nach `main`. Ist `main` so geschützt, dass
+   nur Pull Requests erlaubt sind, muss `github-actions[bot]` davon ausgenommen werden.
+6. **Funktionen deployen:** `supabase functions deploy trigger-release delete-account`
+
+## Releases von Hand
 
 - **iOS und Android:** `eas build --platform ios|android --profile production`, danach `eas submit`.
-  Version und iOS-Buildnummer stehen in `app.config.ts`. Das ist die einzige Expo-Konfiguration,
-  eine `app.json` gibt es bewusst nicht mehr.
-- **Web:** `npx expo export --clear --platform web` erzeugt statische Dateien in `dist/`.
-  Mit `Dockerfile` und `nginx.conf` entsteht daraus ein Container (Build-Argumente siehe Dockerfile).
-  Die nginx-Konfiguration ist nötig, weil dynamische Seiten wie `/trip/123` auf ihre Vorlage
-  (`/trip/[id].html`) umgeleitet werden müssen.
+  Vorher `node scripts/bump-build-number.mjs`. Version und Build-Nummer stehen in `app.config.ts`, in
+  `ios/AusflugFinder/Info.plist`, im Xcode-Projekt und in `android/app/build.gradle`. Das Skript ändert alle Stellen gemeinsam.
+- **Web:** `docker build` mit den Build-Argumenten aus dem `Dockerfile`. Die nginx-Konfiguration ist nötig, weil dynamische
+  Seiten wie `/trip/123` auf ihre Vorlage (`/trip/[id].html`) umgeleitet werden müssen.
 
 ## Plattformspezifischer Code
 
-Unterschiede zwischen den Plattformen stehen in Dateien mit Endung `.android.tsx`, `.ios.tsx`,
-`.native.tsx` oder `.web.tsx`. Expo wählt automatisch die passende Datei. Beispiele:
-
-- `app/(tabs)/planner.android.tsx` und `components/planning/SwipeablePlanCard.android.tsx`
-- `components/ui/trip-map-view.web.tsx` und `.native.tsx`
-
-Eine Änderung in einer Datei ohne Plattform-Endung gilt für alle drei Plattformen.
+Unterschiede stehen in Dateien mit Endung `.android.tsx`, `.ios.tsx`, `.native.tsx` oder `.web.tsx`.
+Expo wählt automatisch die passende Datei. Beispiele: `app/(tabs)/planner.android.tsx`,
+`components/ui/trip-map-view.web.tsx`. Eine Änderung in einer Datei ohne Plattform-Endung gilt für alle drei Plattformen.
 
 ## Hinweise
 
 - Die New Architecture bleibt aktiv, weil Reanimated 4 sie voraussetzt.
-- Rechtstexte (Impressum, Datenschutz, AGB) stehen in `lib/legal-content.ts` und sind unter
-  `/legal/impressum`, `/legal/privacy` und `/legal/terms` erreichbar.
-- Die Supabase Edge Functions liegen in `supabase/functions` und werden getrennt deployt.
+- Rechtstexte stehen in `lib/legal-content.ts` und sind unter `/legal/impressum`, `/legal/privacy` und `/legal/terms` erreichbar.

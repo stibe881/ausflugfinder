@@ -29,8 +29,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useSupabaseAuth } from "@/contexts/supabase-auth-context";
 import { supabase } from "@/lib/supabase";
 import { useAdmin } from "@/contexts/admin-context";
-import { getLoginUrl } from "@/constants/oauth";
-import { trpc } from "@/lib/trpc";
+import { deleteOwnAccount } from "@/lib/account-api";
+import { confirmAsync, notify } from "@/lib/confirm";
 import { useLanguage } from "@/contexts/language-context";
 
 type SettingItemProps = {
@@ -250,14 +250,7 @@ export default function ProfileScreen() {
   const { isAdmin, isAdminModeEnabled, toggleAdminMode } = useAdmin();
 
   // Delete account mutation
-  const deleteAccountMutation = trpc.auth.deleteAccount.useMutation({
-    onSuccess: () => {
-      Alert.alert("Konto gelöscht", "Dein Konto wurde erfolgreich gelöscht.");
-    },
-    onError: (error) => {
-      Alert.alert("Fehler", error.message);
-    },
-  });
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   const handleLogout = () => {
     Alert.alert(
@@ -273,32 +266,32 @@ export default function ProfileScreen() {
     );
   };
 
-  const handleDeleteAccount = () => {
-    Alert.alert(
-      t.deleteAccountConfirm,
-      t.deleteAllData,
-      [
-        { text: t.cancel, style: "cancel" },
-        {
-          text: t.delete,
-          style: "destructive",
-          onPress: () => {
-            Alert.alert(
-              t.deleteAccountConfirm,
-              t.deleteAllData,
-              [
-                { text: t.cancel, style: "cancel" },
-                {
-                  text: "Endgültig löschen",
-                  style: "destructive",
-                  onPress: () => deleteAccountMutation.mutate(),
-                },
-              ]
-            );
-          },
-        },
-      ]
-    );
+  const handleDeleteAccount = async () => {
+    if (isDeletingAccount) return;
+
+    // Two confirmations: this cannot be undone
+    const first = await confirmAsync(t.deleteAccountConfirm, t.deleteAllData, {
+      confirmText: t.delete,
+      cancelText: t.cancel,
+      destructive: true,
+    });
+    if (!first) return;
+    const second = await confirmAsync(t.deleteAccountConfirm, t.deleteAllData, {
+      confirmText: "Endgültig löschen",
+      cancelText: t.cancel,
+      destructive: true,
+    });
+    if (!second) return;
+
+    setIsDeletingAccount(true);
+    const result = await deleteOwnAccount();
+    setIsDeletingAccount(false);
+
+    if (result.success) {
+      notify("Konto gelöscht", "Dein Konto wurde erfolgreich gelöscht.");
+    } else {
+      notify("Fehler", result.error);
+    }
   };
 
   const handleFixCoordinates = async () => {
@@ -559,6 +552,13 @@ export default function ProfileScreen() {
                   title="Push-Benachrichtigungen"
                   subtitle="Broadcast an alle User senden"
                   onPress={() => router.push("/broadcast" as any)}
+                />
+                <SettingItem
+                  icon="arrow.up.arrow.down"
+                  iconColor="#8B5CF6"
+                  title="Updates veröffentlichen"
+                  subtitle="Web, iOS und Android aktualisieren"
+                  onPress={() => router.push("/admin/releases" as any)}
                 />
                 <SettingItem
                   icon="mappin.and.ellipse"

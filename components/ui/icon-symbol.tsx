@@ -88,6 +88,7 @@ const MAPPING = {
   "mountain.2.fill": "terrain",
   "figure.walk": "directions-walk",
   "arrow.up.arrow.down": "swap-vert",
+  "iphone": "smartphone",
   "creditcard.fill": "credit-card",
   "globe.europe.africa.fill": "public",
   "lightbulb": "lightbulb-outline",

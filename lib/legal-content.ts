@@ -1,4 +1,5 @@
-// Legal texts, taken unchanged from the former web app (ausflugfinder-web).
+// Legal texts. Impressum and AGB come from the former web app; the privacy
+// policy was rewritten to match what the app actually does.
 // German only, as before.
 
 export type LegalSection = {
@@ -39,12 +40,75 @@ export const LEGAL_DOCUMENTS: Record<LegalDocumentKey, LegalDocument> = {
 
   privacy: {
     title: "Datenschutzerklärung",
+    updated: "Stand: Oktober 2026",
     sections: [
       {
         heading: "Verantwortliche Stelle",
         paragraphs: [
           "Verantwortlicher im Sinne der Datenschutzgesetze ist:",
           `AusflugFinder.ch\n${ADDRESS}\nE-Mail: stefan.gross@hotmail.ch`,
+          "Diese Erklärung gilt für die AusflugFinder-App (iOS und Android) und für die Web-Version.",
+        ],
+      },
+      {
+        heading: "Welche Daten wir verarbeiten",
+        paragraphs: ["Wir verarbeiten nur Daten, die für die Funktionen der App nötig sind:"],
+        bullets: [
+          "Kontodaten: Name, E-Mail-Adresse und Passwort. Das Passwort wird nur als Hash gespeichert, nicht im Klartext.",
+          "Inhalte, die Sie erstellen: Favoriten, gemerkte und erledigte Ausflüge, Pläne mit Packliste, Budget und Teilnehmern, Freundeslisten und Einladungen sowie Fotos.",
+          "Gutscheine: Wenn Sie ein Konto der Gutschein-App verknüpfen, werden Ihre E-Mail-Adresse und die Gutscheindaten mit dem jeweiligen Ausflug verbunden.",
+          "Push-Token Ihres Geräts, damit wir Benachrichtigungen zustellen können.",
+          "Standortdaten, nur wenn Sie den Zugriff erlauben (siehe unten).",
+        ],
+      },
+      {
+        heading: "Registrierung und Benutzerkonto",
+        paragraphs: [
+          "Für personalisierte Funktionen ist ein Konto nötig. Die Anmeldung und die Speicherung Ihrer Daten laufen über Supabase. Sie können Ihr Konto jederzeit in der App unter Profil löschen. Dabei werden Ihr Konto und Ihre zugehörigen Daten entfernt.",
+        ],
+      },
+      {
+        heading: "Standort",
+        paragraphs: [
+          "Mit Ihrer Erlaubnis nutzt die App Ihren Standort, um Ausflugsziele in Ihrer Nähe und Entfernungen anzuzeigen. Wenn Sie die Funktion aktivieren, nutzt die App den Standort auch im Hintergrund, um Sie auf Ausflugsziele in der Nähe hinzuweisen. Sie können die Erlaubnis jederzeit in den Einstellungen Ihres Geräts oder in der App widerrufen.",
+          "Für Karten, Entfernungen und Wetter übermitteln wir Koordinaten oder Adressen an die unten genannten Dienstleister.",
+        ],
+      },
+      {
+        heading: "Push-Benachrichtigungen",
+        paragraphs: [
+          "Wenn Sie zustimmen, senden wir Ihnen Benachrichtigungen, zum Beispiel zu neuen Ausflügen oder Freundschaftsanfragen. Die Zustellung erfolgt über den Push-Dienst von Expo sowie über Apple beziehungsweise Google. Sie können Ihre Zustimmung jederzeit in den Einstellungen Ihres Geräts widerrufen.",
+        ],
+      },
+      {
+        heading: "Anmeldung mit Face ID oder Touch ID",
+        paragraphs: [
+          "Die biometrische Anmeldung wird von Ihrem Gerät geprüft. Biometrische Daten verlassen Ihr Gerät nicht und werden von uns nicht gespeichert.",
+        ],
+      },
+      {
+        heading: "Dienstleister und Datenempfänger",
+        paragraphs: ["Wir setzen folgende Dienstleister ein:"],
+        bullets: [
+          "Supabase: Anmeldung, Datenbank, Dateispeicher und Serverfunktionen. Die Daten werden in der AWS-Region Europa (London, Vereinigtes Königreich) gespeichert.",
+          "Google Maps: Kartendarstellung, Adresssuche und Entfernungsberechnung. Dabei erhält Google unter anderem Ihre IP-Adresse sowie Koordinaten oder Adressen. Es gelten die Datenschutzhinweise von Google.",
+          "OpenWeather: Wetterdaten. Dabei werden Koordinaten übermittelt.",
+          "Expo: Zustellung von Push-Benachrichtigungen.",
+          "Resend: Versand von E-Mails, zum Beispiel bei Einladungen an Freunde.",
+        ],
+        footer:
+          "Einige dieser Dienstleister haben ihren Sitz oder ihre Server ausserhalb der Schweiz, zum Beispiel in den USA oder im Vereinigten Königreich.",
+      },
+      {
+        heading: "Web-Version",
+        paragraphs: [
+          "In der Web-Version wird Ihre Anmeldung im lokalen Speicher Ihres Browsers abgelegt, damit Sie angemeldet bleiben. Wir setzen keine Tracking-Cookies ein. Beim Aufruf der Webseite verarbeitet der Server technisch bedingt kurzzeitig Angaben wie die IP-Adresse, den Browsertyp und das Betriebssystem.",
+        ],
+      },
+      {
+        heading: "Keine Analyse und keine Werbung",
+        paragraphs: [
+          "Wir setzen keine Analyse-, Tracking- oder Werbe-Dienste ein und verkaufen keine Daten.",
         ],
       },
       {
@@ -53,7 +117,7 @@ export const LEGAL_DOCUMENTS: Record<LegalDocumentKey, LegalDocument> = {
         bullets: [
           "Auskunft über Ihre bei uns gespeicherten Daten und deren Verarbeitung.",
           "Berichtigung unrichtiger personenbezogener Daten.",
-          "Löschung Ihrer bei uns gespeicherten Daten.",
+          "Löschung Ihrer bei uns gespeicherten Daten, in der App unter Profil oder per E-Mail.",
           "Einschränkung der Datenverarbeitung, sofern wir Ihre Daten aufgrund gesetzlicher Pflichten noch nicht löschen dürfen.",
           "Widerspruch gegen die Verarbeitung Ihrer Daten bei uns.",
         ],
@@ -61,49 +125,15 @@ export const LEGAL_DOCUMENTS: Record<LegalDocumentKey, LegalDocument> = {
           "Für Anfragen zu Ihren Rechten oder zum Datenschutz wenden Sie sich bitte an die oben angegebene E-Mail-Adresse.",
       },
       {
-        heading: "Erfassung allgemeiner Informationen",
-        paragraphs: [
-          "Wenn Sie auf unsere Website zugreifen, werden automatisch mittels eines Cookies Informationen allgemeiner Natur erfasst. Diese Informationen (Server-Logfiles) beinhalten etwa die Art des Webbrowsers, das verwendete Betriebssystem, den Domainnamen Ihres Internet-Service-Providers und ähnliches.",
-        ],
-      },
-      {
-        heading: "Cookies",
-        paragraphs: [
-          "Unsere Website verwendet Cookies, um die Benutzerfreundlichkeit zu erhöhen. Cookies sind kleine Textdateien, die auf Ihrem Endgerät gespeichert werden. Einige der von uns verwendeten Cookies werden nach Ende der Browser-Sitzung wieder gelöscht (sog. Sitzungs-Cookies). Andere Cookies verbleiben auf Ihrem Endgerät und ermöglichen es uns, Ihren Browser beim nächsten Besuch wiederzuerkennen (persistente Cookies). Weitere Informationen zu den von uns verwendeten Cookies finden Sie in unserem Cookie-Banner.",
-        ],
-      },
-      {
-        heading: "Registrierung und Benutzerkonto",
-        paragraphs: [
-          "Bei der Registrierung für die Nutzung unserer personalisierten Leistungen werden einige personenbezogene Daten erhoben. Um Ihnen den vollen Funktionsumfang der App zu bieten, speichern wir folgende Daten: Name, E-Mail, Passwort (als Hash), sowie von Ihnen erstellte Inhalte wie Standortdaten, Reisepläne und Fotos. Diese Daten werden ausschließlich zur Bereitstellung der App-Funktionen verwendet.",
-        ],
-      },
-      {
-        heading: "Push-Benachrichtigungen",
-        paragraphs: [
-          "Wenn Sie zustimmen, können wir Ihnen Push-Benachrichtigungen senden, um Sie über wichtige Ereignisse oder Updates zu informieren. Sie können Ihre Zustimmung jederzeit in den Einstellungen Ihres Geräts widerrufen.",
-        ],
-      },
-      {
-        heading: "Verwendung von Google Maps",
-        paragraphs: [
-          "Diese Webseite verwendet Google Maps, um geographische Informationen visuell darzustellen. Bei der Nutzung von Google Maps werden von Google auch Daten über die Nutzung der Kartenfunktionen durch Besucher erhoben, verarbeitet und genutzt. Nähere Informationen über die Datenverarbeitung durch Google können Sie den Google-Datenschutzhinweisen entnehmen. Dort können Sie im Datenschutzcenter auch Ihre persönlichen Datenschutz-Einstellungen verändern.",
-        ],
-      },
-      {
-        heading: "Serverstandort",
-        paragraphs: ["Ihre Daten werden auf Servern in der Schweiz gehostet."],
-      },
-      {
         heading: "Datenlöschung und -aufbewahrung",
         paragraphs: [
-          "Wir speichern Ihre personenbezogenen Daten nur so lange, wie dies zur Erreichung der hier genannten Zwecke erforderlich ist oder wie es die vom Gesetzgeber vorgesehenen vielfältigen Speicherfristen vorsehen. Um die Löschung Ihrer Daten zu beantragen, senden Sie bitte eine E-Mail an stefan.gross@hotmail.ch.",
+          "Wir speichern Ihre personenbezogenen Daten nur so lange, wie dies für die genannten Zwecke erforderlich ist oder gesetzliche Aufbewahrungsfristen es verlangen. Um die Löschung Ihrer Daten zu beantragen, löschen Sie Ihr Konto in der App oder senden Sie eine E-Mail an stefan.gross@hotmail.ch.",
         ],
       },
       {
-        heading: "Änderung unserer Datenschutzbestimmungen",
+        heading: "Änderung dieser Datenschutzerklärung",
         paragraphs: [
-          "Wir behalten uns vor, diese Datenschutzerklärung anzupassen, damit sie stets den aktuellen rechtlichen Anforderungen entspricht oder um Änderungen unserer Leistungen in der Datenschutzerklärung umzusetzen, z.B. bei der Einführung neuer Services. Für Ihren erneuten Besuch gilt dann die neue Datenschutzerklärung.",
+          "Wir behalten uns vor, diese Datenschutzerklärung anzupassen, damit sie stets den aktuellen rechtlichen Anforderungen entspricht oder um Änderungen unserer Leistungen abzubilden. Es gilt die jeweils aktuelle Fassung.",
         ],
       },
     ],
@@ -116,7 +146,7 @@ export const LEGAL_DOCUMENTS: Record<LegalDocumentKey, LegalDocument> = {
       {
         heading: "1. Geltungsbereich",
         paragraphs: [
-          'Diese Allgemeinen Geschäftsbedingungen (nachfolgend "AGB") gelten für alle Nutzer der Web-Applikation "AusflugFinder". Mit der Nutzung der Applikation erklären Sie sich mit diesen Bedingungen einverstanden.',
+          'Diese Allgemeinen Geschäftsbedingungen (nachfolgend "AGB") gelten für alle Nutzer der App und Web-Applikation "AusflugFinder". Mit der Nutzung der Applikation erklären Sie sich mit diesen Bedingungen einverstanden.',
         ],
       },
       {

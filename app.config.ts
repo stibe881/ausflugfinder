@@ -48,7 +48,7 @@ const config: ExpoConfig = {
     bundleIdentifier: env.iosBundleId,
     buildNumber: "130",
     config: {
-      googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "AIzaSyAdDy_5jIriXd0kBJ4bzSNO8pKcegr9Z3E",
+      googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
     },
     infoPlist: {
       CFBundleIconName: "AppIcon",
@@ -69,9 +69,10 @@ const config: ExpoConfig = {
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     package: env.androidPackage,
+    versionCode: 130,
     config: {
       googleMaps: {
-        apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "AIzaSyAdDy_5jIriXd0kBJ4bzSNO8pKcegr9Z3E",
+        apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
       },
     },
     permissions: ["POST_NOTIFICATIONS", "ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
@@ -125,7 +126,7 @@ const config: ExpoConfig = {
     // [
     //   "react-native-maps",
     //   {
-    //     googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "AIzaSyAdDy_5jIriXd0kBJ4bzSNO8pKcegr9Z3E",
+    //     googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
     //   },
     // ],
     "./plugins/withDisableSandbox.cjs",

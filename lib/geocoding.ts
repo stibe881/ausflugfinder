@@ -2,7 +2,7 @@
  * Geocoding utility functions using Google Maps Geocoding API
  */
 
-const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "AIzaSyAdDy_5jIriXd0kBJ4bzSNO8pKcegr9Z3E";
+const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 export interface GeocodeResult {
     lat: string;

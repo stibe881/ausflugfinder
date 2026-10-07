@@ -47,7 +47,7 @@ const config: ExpoConfig = {
     icon: "./assets/images/icon.png",
     supportsTablet: true,
     bundleIdentifier: env.iosBundleId,
-    buildNumber: "134",
+    buildNumber: "135",
     config: {
       googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
     },
@@ -70,7 +70,7 @@ const config: ExpoConfig = {
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     package: env.androidPackage,
-    versionCode: 134,
+    versionCode: 135,
     config: {
       googleMaps: {
         apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,

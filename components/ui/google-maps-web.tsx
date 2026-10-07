@@ -81,6 +81,34 @@ function createInfoWindowTemplate(trip: Trip): string {
 // Initialize once
 let optionsSet = false;
 
+// Dark map style. Every kind of object needs its own colour, otherwise land, water,
+// roads and borders all end up in the same shade and disappear.
+const DARK_MAP_STYLE = [
+  { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#8a8f99" }] },
+  // Borders: countries clearly visible, regions subtle
+  { featureType: "administrative.country", elementType: "geometry.stroke", stylers: [{ color: "#a7b1c2" }, { weight: 1.6 }] },
+  { featureType: "administrative.province", elementType: "geometry.stroke", stylers: [{ color: "#566579" }, { weight: 0.8 }] },
+  { featureType: "administrative.country", elementType: "labels.text.fill", stylers: [{ color: "#c3cbd8" }] },
+  { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+  { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+  { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#263c3f" }] },
+  { featureType: "poi.park", elementType: "labels.text.fill", stylers: [{ color: "#6b9a76" }] },
+  { featureType: "landscape.natural", elementType: "geometry", stylers: [{ color: "#2b3a4a" }] },
+  { featureType: "road", elementType: "geometry", stylers: [{ color: "#38414e" }] },
+  { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#212a37" }] },
+  { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9ca5b3" }] },
+  { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#746855" }] },
+  { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#1f2835" }] },
+  { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#f3d19c" }] },
+  { featureType: "transit", elementType: "geometry", stylers: [{ color: "#2f3948" }] },
+  { featureType: "transit.station", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+  { featureType: "water", elementType: "geometry", stylers: [{ color: "#17263c" }] },
+  { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#515c6d" }] },
+  { featureType: "water", elementType: "labels.text.stroke", stylers: [{ color: "#17263c" }] },
+];
+
 export function GoogleMapsWeb({ trips, onMarkerPress }: GoogleMapsWebProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? "light"];
@@ -137,11 +165,7 @@ export function GoogleMapsWeb({ trips, onMarkerPress }: GoogleMapsWebProps) {
           mapTypeControl: true,
           streetViewControl: false,
           fullscreenControl: true,
-          styles: colorScheme === "dark" ? [
-            { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
-            { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
-            { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
-          ] : [],
+          styles: colorScheme === "dark" ? DARK_MAP_STYLE : [],
         });
 
         googleMapRef.current = map;
